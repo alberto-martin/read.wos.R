@@ -1,15 +1,10 @@
-# This function will parse a list of WoS export files in Tab-delimited (Win) Format, and convert them
-# to a data.frame. Optionally, It will also save it to Tab delimited text file.
+# This function will parse a list of WoS export files in Tab-delimited (Win, UTF-8) Format, and convert them
+# to a data.frame.
 
 read.wos.tabwin.utf8 <- function(filefolder = "./files", fields_path = "fields.txt") {
   # reads list of fields
   fields  <- readLines(fields_path)
   files  <- list.files(filefolder)
-  
-  # Connection to the output text file
-  #output <- file("wos_tab.txt","w")
-  # Writing headers to the file
-  #writeLines(paste(fields, collapse="\t"), output)
   
   df <- data.frame()
   

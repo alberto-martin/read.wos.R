@@ -1,15 +1,10 @@
 # This function will parse a list of WoS export files in Plain Text Format, and convert them
-# to a data.frame. Optionally, It will also save it to Tab delimited text file.
+# to a data.frame.
 
 read.wos.plain <- function(filefolder = "./files", fields_path = "fields.txt") {
   # reads list of fields
   fields  <- readLines(fields_path)
   files  <- list.files(filefolder)
-  
-  # Connection to the output text file
-  #output <- file("wos_tab.txt","w")
-  # Writing headers to the file
-  #writeLines(paste(fields, collapse="\t"), output)
   
   df <- data.frame()
   
@@ -69,16 +64,12 @@ read.wos.plain <- function(filefolder = "./files", fields_path = "fields.txt") {
       row_df <- data.frame(row_matrix)
       df <- rbind(df, row_df)
       
-      # writes the vector to the file, separating each field with tabs
-      #writeLines(paste(row, collapse="\t"), output)
       beginning_of_record <- end_of_record + 2
       
     }      
   }
   
   colnames(df) <- fields
-  # Closes the connection
-  #close(output)
   
   df
 }

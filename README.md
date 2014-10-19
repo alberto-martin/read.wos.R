@@ -10,7 +10,7 @@ Through arguments in the function, you can specify the path to the folder that c
 
 ## read.wos.tabwin.utf8
 
-Reads data from Web of Science exported in "Tab-delimited (Win, UTF-8) format, and converts it into a data.frame.
+Reads data from Web of Science exported in "Tab-delimited (Win, UTF-8)" format, and converts it into a data.frame.
 
 Through arguments in the function, you can specify the path to the folder that contains the list of files (filefolder), as well as the list of fields you want to extract from the files (fields_path). By default, the file folder is "./files" and the list of fields is stored in "fields.txt".
 
