@@ -1,13 +1,25 @@
 # This function will parse a list of WoS export files in Plain Text Format, and convert them
-# to a data.frame.
+# to a data.table.
 
-read.wos.plain <- function(filefolder = "./files", fields_path = "fields.txt") {
+library(data.table)
+
+read.wos.plain <- function(filefolder = "./files", fields_path = "fields.txt", nrows=10000000L) {
   # reads list of fields
   fields  <- readLines(fields_path)
   files  <- list.files(filefolder)
   
-  df <- data.frame()
+  # creates empty data.table
+  dt <- data.table(x=rep("0",nrows))
+  l  <- list(rep("0",length(fields)))
+  i  <- 1
+  for (field in fields) {
+    l[[i]] <- rep("0",nrows)
+    i <- i + 1
+  }
+  dt[, fields := l, with = FALSE]
+  dt[,x:=NULL]
   
+  i  <- 1L # row counter
   # Iterates through all files in filefolder
   for (file in files) {
     # reads a file, and saves its lines as a character vector
@@ -58,19 +70,19 @@ read.wos.plain <- function(filefolder = "./files", fields_path = "fields.txt") {
         row  <- c(row, substring(field_data,4))
         
       }
-      # creates a one row data.frame and appends it to the output data.frame (df)
-      row_matrix <- row
-      dim(row_matrix) <- c(1,length(fields))
-      row_df <- data.frame(row_matrix)
-      df <- rbind(df, row_df)
-      
-      beginning_of_record <- end_of_record + 2
-      
+      # Splits each row into a character vector, and updates the rows in the data.table
+      j  <- 1L # column counter
+      for (field_value in row) {
+        set(dt,i,j,field_value)
+        j  <- j + 1L
+      }
+      i  <- i + 1L
+      beginning_of_record <- end_of_record + 2 
     }      
   }
-  
-  colnames(df) <- fields
-  
-  df
+  # deletes unused rows
+  dt <- dt[PT != "0"]
+  # returns data.table
+  dt
 }
   
