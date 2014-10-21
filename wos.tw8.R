@@ -3,7 +3,7 @@
 
 library(data.table)
 
-read.wos.tabwin.utf8 <- function(filefolder = "./files", fields_path = "fields.txt", nrows=10000000L) {
+read.wos.tw8 <- function(filefolder = "./files", fields_path = "fields.txt", nrows=10000000L) {
   # reads list of fields
   fields  <- readLines(fields_path)
   files  <- list.files(filefolder)  

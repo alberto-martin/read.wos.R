@@ -10,7 +10,7 @@ data.table
 
 read.wos.plain: it reads data from Web of Science exported in "Plain Text" format, and converts it into a data.table. 
 
-read.wos.tabwin.utf8: it reads data from Web of Science exported in "Tab-delimited (Win, UTF-8)" format, and converts it into a data.table.
+read.wos.tw8: it reads data from Web of Science exported in "Tab-delimited (Win, UTF-8)" format, and converts it into a data.table.
 
 ### Arguments
 
