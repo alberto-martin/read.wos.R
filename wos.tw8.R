@@ -3,7 +3,7 @@
 
 library(data.table)
 
-read.wos.tw8 <- function(filefolder = "./files", fields_path = "fields.txt", nrows=10000000L) {
+read.wos.tw8 <- function(filefolder = "./files", fields_path = "fields.txt", nrows=1000000L) {
   # reads list of fields
   fields  <- readLines(fields_path)
   files  <- list.files(filefolder)  
@@ -41,5 +41,40 @@ read.wos.tw8 <- function(filefolder = "./files", fields_path = "fields.txt", nro
   # deletes unused rows
   dt <- dt[PT != "0"]
   # returns data.table
+  dt
+}
+
+trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+
+split.field <- function(idcol, splitcol, delimiter) {
+  
+  # creates empty data.table
+  dt <- data.table(x=rep("0",100000000L))
+  l  <- list(rep("0",2))
+  i  <- 1
+  for (j in 1:2) {
+    l[[i]] <- rep("0",100000000L)
+    i <- i + 1
+  }
+  dt[, c("UT","split") := l, with = FALSE]
+  dt[,x:=NULL]
+  
+  i  <- 1L # row counter
+  for (docix in 1:length(idcol)) {
+    id <- idcol[docix]
+    splitfield <- splitcol[docix]
+    split_list <- strsplit(splitfield, delimiter)[[1]]
+    for (el in split_list) {
+      el  <- trim(el)
+      if (length(el) > 0) {
+        set(dt,i,1L,id)
+        set(dt,i,2L,el)
+        i  <-  i + 1L
+      }
+    }
+  }  
+  
+  # deletes unused rows
+  dt <- dt[UT != "0"]
   dt
 }
