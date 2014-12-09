@@ -8,9 +8,11 @@ data.table
 
 ## Functions
 
-read.wos.plain: it reads data from Web of Science exported in "Plain Text" format, and converts it into a data.table. 
+read.wos.plain: reads data from Web of Science exported in "Plain Text" format, and converts it into a data.table. 
 
-read.wos.tw8: it reads data from Web of Science exported in "Tab-delimited (Win, UTF-8)" format, and converts it into a data.table.
+read.wos.tw8: reads data from Web of Science exported in "Tab-delimited (Win, UTF-8)" format, and converts it into a data.table.
+
+split.field: splits a field with multiple elements (authors, subject categories, etc... and creates a new data.table containing each element in a separate row, keeping its relationship to the original record through the ID column.
 
 ### Arguments
 
