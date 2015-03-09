@@ -24,6 +24,8 @@ nrows: number of records to be processed. Default is 10,000,000 (it will remove 
 
 ## Update log
 
+v0.5	Added split.c1 function to split the C1 WoS field (authors/addresses), split.field() and read.wos() wrappers
+
 v0.4    Added split.field function to split author, category etc. fields. It creates a new table containing each element in a separate row, keeping its relationship to the original record through the ID column.
 
 v0.3	Replaced the method for building the table, from data.frame/rbind to data.table. Performance is greatly improved.

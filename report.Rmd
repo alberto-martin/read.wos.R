@@ -1,3 +1,65 @@
+---
+output: html_document
+---
+
+# Reading Web of Science Data into R
+
+### Alberto Martín-Martín, Emilio Delgado López-Cózar
+#### EC3: Evaluación de la Ciencia y de la Comunicación Científica, Universidad de Granada (Spain)
+#### albertomartin@ugr.es
+
+```{r, echo=FALSE, results='hide'}
+Sys.setlocale("LC_TIME", "English")
+today <- Sys.Date()
+today_format <- format(today, format="%B %d, %Y")
+```
+
+`r today_format`
+
+##### Cite as:
+Martín-Martin, A., & Delgado López.Cózar, E. (2015). Reading Web of Science Data into R. Available at: [url]. Accessed [day, month, year]
+
+### Abstract
+This document describes a series of functions designed to read Web of Science (WoS) data exported in tabular or plain text (RIS) format into R. Additionally, functions to process multiple-element fields (authors, addresses, Web of Science categories) are also presented. Lastly, some simple examples of the possible computations that may be executed once the data has been read into R are laid out. The code for these functions is accessible from our [read.wos.R GitHub repository](https://github.com/alberto-martin/read.wos.R).
+
+### Introduction
+R has its own function to read tabular data from text files (read.table), and many R packages provide their own functions for this task (i.e. data.table and fread). If this is the case, why are custom functions to import WoS data into R even necessary? The reason is that text files exported from WoS, even in tabular format, don't comply with the specifications set buy these functions, and therefore trying to read WoS data with these functions, at least with the most common parameter combinations, always results in errors or incorrectly read data. 
+
+It may very well be that we've just missed the correct combination of function parameters that allows to read WoS data into R with these base functions, but in any case, in the end we had to resort to writing my own custom functions to be able to perform computations on WoS data with R.
+
+For testing purposes, a set of files comprising the totality of records on the Web of Science on "INFORMATION SCIENCE LIBRARY SCIENCE" published between 1999 and 2014 have been downloaded. This set was downloaded in two stages:
+
+* Articles published between 2007 and 2014 (95,821 records) were downloaded in "Tab-delimited (Win, UTF-8)" format. The search strategy in WoS' advanced search interface was: WC="INFORMATION SCIENCE LIBRARY SCIENCE" AND PY=2007-2014.
+* Articles published between 1999 and 2006 (90,939 records) were downloaded in "Plain Text" (RIS) format. The search strategy in WoS' advanced search interface was: WC="INFORMATION SCIENCE LIBRARY SCIENCE" AND PY=1999-2006.
+
+In both cases, the record content selected was "Full Record and Cited References"
+
+```{r}
+# "LIS_2007-2014" and "LIS_1999-2006" are the directories where I downloaded the data
+head(list.files("LIS_2007-2014")); tail(list.files("LIS_2007-2014"))
+head(list.files("LIS_1999-2006")); tail(list.files("LIS_1999-2006"))
+total_files <- sum(length(list.files("LIS_2007-2014")),length(list.files("LIS_1999-2006")))
+```
+A total of `r total_files` files where downloaded from WoS.
+
+Before moving on to reading the data, it is necessary to state the exact environment where the code has been run. Our machine specifications are as follows:
+
+* Intel i7 4th Gen. 3.40 GHz microprocessor.
+* 16 GB DDR3 RAM
+* Windows 7 64 bits
+
+R and data.table versions
+```{r}
+R.version
+packageVersion('data.table')
+```
+[data.table](http://cran.r-project.org/web/packages/data.table/index.html) is an R package developed by Matt Dowle that allows handling tabular data much more efficiently than with data.frames. This package must be installed for these functions to work properly.
+
+To sum up, the following functions enable R users to easily import multiple text files exported from Web of Science in "Tab-delimited (Win, UTF-8)" or "Plain Text" format into an R data.table using a sigle function call, and additionally, to pre-process multiple-element fields like authors, addresses and WoS categories fields.
+
+### Functions
+
+```{r}
 library(data.table)
 
 fields <- c('PT', 'AU', 'BA', 'BE', 'GP', 'AF', 'BF', 'CA', 'TI', 'SO', 'SE', 'BS', 
@@ -309,3 +371,91 @@ split.field <- function(source_dt, idcol = source_dt[['UT']], splitcol, delimite
     split.simple(source_dt = source_dt, idcol = idcol, splitcol = splitcol, delimiter = delimiter)
   }
 }
+```
+
+Let's read the data downloaded as "Tab-delimited (Win, UTF-8)"
+```{r, cache=TRUE}
+system.time(lis_07_14 <- read.wos('LIS_2007-2014'))
+str(lis_07_14)
+```
+As can be seen, in this case it is only necessary to specify the directory where the text files have been saved. If the format parameter is not specified in the function call, read.wos tries to read files in "Tab-delimited (Win, UTF-8)" format.
+
+Additionally, the function system.time() informs us that it takes less than 1.5 minutes to read almost 100,000 records.
+
+All fields are read as text fields except the NR, TC, Z9 and PY fields, which are read as integers. The meaning of each field name can be found [here](http://images.webofknowledge.com/WOKRS56B5/help/WOS/hs_wos_fieldtags.html).
+
+Now, let's read the records downloaded as "Plain Text"
+
+```{r, cache=TRUE, warning=FALSE}
+system.time(lis_99_06 <- read.wos('LIS_1999-2006', format = 'plain_text'))
+str(lis_99_06)
+```
+Reading text files in "Plain Text" format is a bit more complex, since the content for each field has to be parsed first. Because of that, this process takes a bit longer than reading tabulated data: in this case it takes over 12 minutes to read 90,000 WoS records.
+
+Now we can merge both sets:
+```{r}
+lis_99_14 <- rbind(lis_99_06,lis_07_14)
+total_records <- dim(lis_99_14)[1]
+```
+A total of `r total_records` records have been imported.
+
+Once all records are imported, the function split.field() allows us to create indexes out of those fields that contain various elements separated by some delimiter. Some such fields are: AU and AF (authors), C1 (authors / addresses), CR (cited references), WC and SC (subject categories). Let's see how we can create an author index:
+```{r, cache=TRUE}
+system.time(authors <- split.field(lis_99_14, splitcol = 'AU'))
+head(authors)
+```
+Only two parameters are needed in the split.field() function: 
+
+1. source_dt: the name of the data.table from which we want to create an index.
+2. splitcol: the name of the field we want to split. 
+
+There are other two parameters that are filled by default, but could be changed at need: 
+
+3. idcol: which is the name of the field that we want to use as an external key for the index. By default it is set to 'UT', which is the identifier WoS assigns to each of the records in its database.
+4. delimiter: the character used as a delimiter in the field. By default, it is set to ';' (semicolon).
+
+Now let's try to create an index from the C1 (author / addresses) field:
+
+```{r, cache=TRUE}
+system.time(addresses <- split.field(lis_99_14, splitcol = 'C1'))
+tail(addresses)
+```
+The function call is exactly the same that in the case of the 'AU' field, but in this case, the output is a data.table with three columns instead of two: UT, author, and address. The split.field() function detects when the 'C1' field is selected, and applies a slightly different set of commands from the ones used for simple multiple-element fields.
+
+Once the data has been imported to an R data.table, it is easy to make computations that would take a lot of time to do with the tools provided by Web of Science's web interface. For example, we can compute the h index of every journal with a single command:
+```{r}
+# First we've got to define a function to compute de h index
+hindex <- function(int_vector) {
+  int_vector <- sort(int_vector, decreasing = TRUE)
+  i = 1L
+  if (sum(int_vector) != 0) {
+    for (j in int_vector) {
+      if (j >= i) {
+        h <- i
+        i  <- i + 1L
+      } else {
+        break
+      }
+    }
+  } else {
+    h  <- 0L
+  }
+  h
+}
+
+# Now we're ready to compute the h index
+journals_hindex <- lis_99_14[, hindex(TC), by = SO]
+
+# Lastly, we order the resulting data.table by h index, decreasingly
+setorder(journals_hindex, -V1)
+setnames(journals_hindex, "V1", "hindex")
+head(journals_hindex,10)
+```
+While it's true that a deeper pre-processing of the data would have been necessary before computing these sort of indicators (in this case, journal names should have been better normalized), R enables users to perform quick and powerful exploratory analyses with very little effort.
+
+### Acknowledgments
+Alberto Martín-Martín enjoys a four-year doctoral fellowship (FPU2013/05863) granted by the Spanish Ministry of Education, Culture and Sports.
+
+### References
+
+M Dowle, T Short, S Lianoglou, A Srinivasan, R Saporta, E Antonyan (2014). data.table: Extension of data.frame. Version 1.9.4. Available at: http://cran.r-project.org/web/packages/data.table/index.html (Accessed `r Sys.time()`)
