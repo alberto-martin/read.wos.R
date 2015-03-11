@@ -11,16 +11,16 @@ data.table
 ### read.wos
 reads data from Web of Science exported in "Tab-delimited (Win, UTF-8)" or "Plain Text" format, and converts it into a data.table. 
 #### Arguments:
-	* path: path to the folder where the exported files are. Default: "./files/"
-	* format: format of the exported files: "tab_win_utf8" or "plain_text". Default: "tab_win_utf8"
+* path: path to the folder where the exported files are. Default: "./files/"
+* format: format of the exported files: "tab_win_utf8" or "plain_text". Default: "tab_win_utf8"
 
 ### split.field
 splits a field with multiple elements (authors, subject categories, addresses, etc... and creates a new data.table containing each element in a separate row, keeping its relationship to the original record through the ID column.
 #### Arguments:
-	* source_dt: data.table from which to extract the data. No default.
-	* idcol: name of the variable in the data.table that will serve as the identifier (external key). Default: "UT"
-	* splitcol: name of the variable in the data.table that will be split. No default. Possible values: "AU", "AF", "C1", "WC", "SC". If "C1" is selected, the resulting data.table will have three columns: the ID column, author, and address.
-	* delimiter: character that separates the elements inside splitcol. Default: ";"
+* source_dt: data.table from which to extract the data. No default.
+* idcol: name of the variable in the data.table that will serve as the identifier (external key). Default: "UT"
+* splitcol: name of the variable in the data.table that will be split. No default. Possible values: "AU", "AF", "C1", "WC", "SC". If "C1" is selected, the resulting data.table will have three columns: the ID column, author, and address.
+* delimiter: character that separates the elements inside splitcol. Default: ";"
 
 ## Update log
 
