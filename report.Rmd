@@ -1,5 +1,6 @@
 ---
-output: html_document
+  html_document:
+    keep_md: true
 ---
 
 # Reading Web of Science Data into R
@@ -40,7 +41,7 @@ head(list.files("LIS_2007-2014")); tail(list.files("LIS_2007-2014"))
 head(list.files("LIS_1999-2006")); tail(list.files("LIS_1999-2006"))
 total_files <- sum(length(list.files("LIS_2007-2014")),length(list.files("LIS_1999-2006")))
 ```
-A total of `r total_files` files where downloaded from WoS.
+A total of `r total_files` files were downloaded from WoS.
 
 Before moving on to reading the data, it is necessary to state the exact environment where the code has been run. Our machine specifications are as follows:
 

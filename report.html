@@ -138,7 +138,7 @@ head(list.files(&quot;LIS_2007-2014&quot;)); tail(list.files(&quot;LIS_2007-2014
 # to a data.table.
 
 read.wos.tw8 &lt;- function(path = './files', nrows=1000000L) {
-  # reads list of fields
+  # reads list of files
   files  &lt;- list.files(path)  
   
   # creates empty data.table
@@ -439,7 +439,7 @@ split.field &lt;- function(source_dt, idcol = source_dt[['UT']], splitcol, delim
 <p>Let’s read the data downloaded as “Tab-delimited (Win, UTF-8)”</p>
 <pre class="r"><code>system.time(lis_07_14 &lt;- read.wos('LIS_2007-2014'))</code></pre>
 <pre><code>##    user  system elapsed 
-##   86.14    0.86   87.91</code></pre>
+##   86.27    0.49   86.83</code></pre>
 <pre class="r"><code>str(lis_07_14)</code></pre>
 <pre><code>## Classes 'data.table' and 'data.frame':   95821 obs. of  59 variables:
 ##  $ PT: chr  &quot;J&quot; &quot;J&quot; &quot;J&quot; &quot;J&quot; ...
@@ -508,7 +508,7 @@ split.field &lt;- function(source_dt, idcol = source_dt[['UT']], splitcol, delim
 <p>Now, let’s read the records downloaded as “Plain Text”</p>
 <pre class="r"><code>system.time(lis_99_06 &lt;- read.wos('LIS_1999-2006', format = 'plain_text'))</code></pre>
 <pre><code>##    user  system elapsed 
-##  729.52    0.74  730.86</code></pre>
+##  730.70    0.86  731.91</code></pre>
 <pre class="r"><code>str(lis_99_06)</code></pre>
 <pre><code>## Classes 'data.table' and 'data.frame':   90913 obs. of  59 variables:
 ##  $ PT: chr  &quot;J&quot; &quot;J&quot; &quot;J&quot; &quot;J&quot; ...
@@ -579,7 +579,7 @@ total_records &lt;- dim(lis_99_14)[1]</code></pre>
 <p>Once all records are imported, the function split.field() allows us to create indexes out of those fields that contain various elements separated by some delimiter. Some such fields are: AU and AF (authors), C1 (authors / addresses), CR (cited references), WC and SC (subject categories). Let’s see how we can create an author index:</p>
 <pre class="r"><code>system.time(authors &lt;- split.field(lis_99_14, splitcol = 'AU'))</code></pre>
 <pre><code>##    user  system elapsed 
-##   22.00    0.72   22.73</code></pre>
+##   17.22    0.77   17.99</code></pre>
 <pre class="r"><code>head(authors)</code></pre>
 <pre><code>##                     UT           AU
 ## 1: WOS:000242448600001  [Anonymous]
@@ -601,7 +601,7 @@ total_records &lt;- dim(lis_99_14)[1]</code></pre>
 <p>Now let’s try to create an index from the C1 (author / addresses) field:</p>
 <pre class="r"><code>system.time(addresses &lt;- split.field(lis_99_14, splitcol = 'C1'))</code></pre>
 <pre><code>##    user  system elapsed 
-##   59.38    0.85   60.28</code></pre>
+##   52.78    0.71   53.50</code></pre>
 <pre class="r"><code>tail(addresses)</code></pre>
 <pre><code>##                     UT                author
 ## 1: WOS:000253974100123       Fernandez, Eloi
@@ -675,7 +675,7 @@ head(journals_hindex,10)</code></pre>
 </div>
 <div id="references" class="section level3">
 <h3>References</h3>
-<p>M Dowle, T Short, S Lianoglou, A Srinivasan, R Saporta, E Antonyan (2014). data.table: Extension of data.frame. Version 1.9.4. Available at: <a href="http://cran.r-project.org/web/packages/data.table/index.html">http://cran.r-project.org/web/packages/data.table/index.html</a> (Accessed 2015-03-09 09:59:56)</p>
+<p>M Dowle, T Short, S Lianoglou, A Srinivasan, R Saporta, E Antonyan (2014). data.table: Extension of data.frame. Version 1.9.4. Available at: <a href="http://cran.r-project.org/web/packages/data.table/index.html">http://cran.r-project.org/web/packages/data.table/index.html</a> (Accessed 2015-03-09 13:51:01)</p>
 </div>
 </div>
 

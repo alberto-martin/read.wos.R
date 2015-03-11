@@ -185,9 +185,11 @@ trim <- function (x) gsub('^\\s+|\\s+$', '', x)
 # subject categories, etc... and creates a new data.table containing
 # each element in a separate row, keeping its relationship to the 
 # original record through the ID column.
-split.simple <- function(source_dt, idcol = source_dt[['UT']], splitcol, delimiter = ';') {
+split.simple <- function(source_dt, idcol = 'UT', splitcol, delimiter = ';') {
   
+  idcol_name <- idcol
   splitcol_name <- splitcol
+  idcol <- source_dt[[idcol]]
   splitcol <- source_dt[[splitcol]]
   
   # creates empty data.table
@@ -198,7 +200,7 @@ split.simple <- function(source_dt, idcol = source_dt[['UT']], splitcol, delimit
     l[[i]] <- rep('0',100000000L)
     i <- i + 1
   }
-  dt[, c('UT', splitcol_name) := l, with = FALSE]
+  dt[, c(idcol_name, splitcol_name) := l, with = FALSE]
   dt[,x:=NULL]
   
   i  <- 1L # row counter
@@ -226,9 +228,11 @@ split.simple <- function(source_dt, idcol = source_dt[['UT']], splitcol, delimit
 # containing each element in a separate row, keeping its relationship to the 
 # original record through the ID column.
 
-split.c1 <- function(source_dt, idcol = source_dt[['UT']], splitcol = 'C1', delimiter = ';') {
+split.c1 <- function(source_dt, idcol = 'UT', splitcol = 'C1', delimiter = ';') {
   
+  idcol_name <- idcol
   splitcol_name <- splitcol
+  idcol <- source_dt[[idcol]]
   splitcol <- source_dt[[splitcol]]
   
   # creates empty data.table
@@ -239,7 +243,7 @@ split.c1 <- function(source_dt, idcol = source_dt[['UT']], splitcol = 'C1', deli
     l[[i]] <- rep('0',100000000L)
     i <- i + 1
   }
-  dt[, c('UT', 'author', 'address') := l, with = FALSE]
+  dt[, c(idcol_name, 'author', 'address') := l, with = FALSE]
   dt[,x:=NULL]
   
   i  <- 1L # row counter
