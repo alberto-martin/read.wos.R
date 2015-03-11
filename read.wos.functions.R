@@ -306,7 +306,7 @@ read.wos  <- function(path = './files', format = 'tab_win_utf8') {
 # This function wraps the split.simple and split.c1 functions, calling the latter if 
 # splitcol == C1 and the former in the rest of the cases
 
-split.field <- function(source_dt, idcol = source_dt[['UT']], splitcol, delimiter = ';') {
+split.field <- function(source_dt, idcol = 'UT', splitcol, delimiter = ';') {
   if (splitcol == 'C1') {
     split.c1(source_dt = source_dt, idcol = idcol, splitcol = 'C1', delimiter = delimiter)
   } else {
