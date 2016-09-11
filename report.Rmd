@@ -279,7 +279,7 @@ split.simple <- function(source_dt, idcol = source_dt[['UT']], splitcol, delimit
     }
   }  
   # deletes unused rows
-  dt <- dt[UT != '0']
+  dt <- dt[dt[[1]] != '0']
   dt
 }
 
@@ -343,7 +343,7 @@ split.c1 <- function(source_dt, idcol = source_dt[['UT']], splitcol = 'C1', deli
     }
   }  
   # deletes unused rows
-  dt <- dt[UT != '0']
+  dt <- dt[dt[[1]] != '0']
   dt
 }
 

@@ -24,6 +24,8 @@ splits a field with multiple elements (authors, subject categories, addresses, e
 
 ## Update log
 
+v0.6  The list of fields is now extracted from the exported files themselves, instead of from a predefined variable, since new fields may be added by WoS at any time, or old ones discontinued.
+
 v0.5	Added split.c1 function to split the C1 WoS field (authors/addresses), split.field() and read.wos() wrappers
 
 v0.4    Added split.field function to split author, category etc. fields. It creates a new table containing each element in a separate row, keeping its relationship to the original record through the ID column.

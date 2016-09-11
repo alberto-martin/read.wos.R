@@ -1,18 +1,17 @@
 library(data.table)
 
-fields <- c('PT', 'AU', 'BA', 'BE', 'GP', 'AF', 'BF', 'CA', 'TI', 'SO', 'SE', 'BS', 
-            'LA', 'DT', 'CT', 'CY', 'CL', 'SP', 'HO', 'DE', 'ID', 'AB', 'C1', 'RP', 
-            'EM', 'RI', 'OI', 'FU', 'FX', 'CR', 'NR', 'TC', 'Z9', 'PU', 'PI', 'PA', 
-            'SN', 'EI', 'BN', 'J9', 'JI', 'PD', 'PY', 'VL', 'IS', 'PN', 'SU', 'SI', 
-            'MA', 'BP', 'EP', 'AR', 'DI', 'D2', 'PG', 'WC', 'SC', 'GA', 'UT', 'AA', 
-            'BB')
-
 # This function will parse a list of WoS export files in Tab-delimited (Win, UTF-8) Format, and convert them
 # to a data.table.
 
 read.wos.tw8 <- function(path = './files', nrows=1000000L) {
+  
   # reads list of files
-  files  <- list.files(path)  
+  files  <- list.files(path)
+  
+  # Getting list of fields
+  fields <- readLines(files[1], n = 1)
+  fields <- substring(fields, 4)
+  fields <- strsplit(fields, "\t")[[1]]
   
   # creates empty data.table
   dt <- data.table(x=rep('0',nrows))
@@ -50,8 +49,6 @@ read.wos.tw8 <- function(path = './files', nrows=1000000L) {
   }
   # deletes unused rows and columns
   dt <- dt[PT != '0']
-  dt <- dt[,AA:=NULL]
-  dt <- dt[,BB:=NULL]
   
   # converts some variables to integer: NR (number of cited references),
   #                                     TC (times cited WoS),
@@ -79,6 +76,21 @@ clean_ut <- function(char_vec, split = " ") {strsplit(char_vec, split = split)[[
 # to a data.table.
 read.wos.plain <- function(path = './files', nrows=10000000L) {
   files  <- list.files(path)
+  
+  # Getting list of fields
+  if (length(files) <= 10) {
+    lines <- unlist(sapply(files, readLines))
+  } else {
+    lines <- unlist(sapply(files[1:10], readLines))
+  }
+  
+  #end_of_record <- which(grepl('ER', substr(lines,1,2)))[1]
+  lines <- lines[3:length(lines)]
+  fields <- unname(sapply(lines[startsWith(lines, "  ") == F], substr, 1, 2))
+  fields <- unique(fields)
+  remove <- c("", "ER", "ï»", 'FN', 'VR')
+  fields <- fields[! fields %in% remove]
+  rm(lines, remove)
   
   # creates empty data.table
   dt <- data.table(x=rep('0',nrows))
@@ -155,8 +167,6 @@ read.wos.plain <- function(path = './files', nrows=10000000L) {
   }
   # deletes unused rows
   dt <- dt[PT != '0']
-  dt <- dt[,AA:=NULL]
-  dt <- dt[,BB:=NULL]
   
   # cleans UT field
   dt$UT  <- sapply(dt$UT, clean_ut, split = ' ')
@@ -218,7 +228,7 @@ split.simple <- function(source_dt, idcol = 'UT', splitcol, delimiter = ';') {
     }
   }  
   # deletes unused rows
-  dt <- dt[UT != '0']
+  dt <- dt[dt[[1]] != '0']
   dt
 }
 
@@ -284,7 +294,7 @@ split.c1 <- function(source_dt, idcol = 'UT', splitcol = 'C1', delimiter = ';') 
     }
   }  
   # deletes unused rows
-  dt <- dt[UT != '0']
+  dt <- dt[dt[[1]] != '0']
   dt
 }
 
