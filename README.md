@@ -5,6 +5,7 @@ In this repository I'll be posting functions to read data exported from the Web 
 ## Required packages
 
 data.table
+parallel
 
 ## Functions
 

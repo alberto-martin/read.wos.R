@@ -1,7 +1,6 @@
 library(data.table)
 library(parallel)
 
-n_cores <- detectCores() - 1
 
 # This function will parse a list of WoS export files in Tab-delimited (Win, UTF-8) Format, and convert them
 # to a data.table.
@@ -35,30 +34,22 @@ read.wos.tw8 <- function(files, save.file.name = F, parallel = F) {
     dt
   }
   
+  f_file <- function(file) {
+    # reads a file, and saves its lines as a character vector
+    lines  <- readLines(file)
+    lines <- lines[2:length(lines)]
+    lines_split <- lapply(lines, f_lines)
+    dt_rows <- lapply(lines_split, f_row)
+    dt <- rbindlist(dt_rows)
+    dt
+  }
+  
   if (parallel == F) {
-    
-    f_file <- function(file) {
-      # reads a file, and saves its lines as a character vector
-      lines  <- readLines(file)
-      lines <- lines[2:length(lines)]
-      lines_split <- lapply(lines, f_lines)
-      dt_rows <- lapply(lines_split, f_row)
-      dt <- rbindlist(dt_rows)
-      dt
-    }
     dt_l <- lapply(files, f_file)
   } else if (parallel == T) {
+    n_cores <- detectCores() - 1
     cl <- makeCluster(n_cores)
     clusterEvalQ(cl, {library(data.table)})
-    f_file <- function(file) {
-      # reads a file, and saves its lines as a character vector
-      lines  <- readLines(file)
-      lines <- lines[2:length(lines)]
-      lines_split <- lapply(lines, f_lines)
-      dt_rows <- lapply(lines_split, f_row)
-      dt <- rbindlist(dt_rows)
-      dt
-    }
     dt_l <- parLapply(cl, files, f_file)
     stopCluster(cl)
   }
@@ -276,9 +267,9 @@ split.c1 <- function(source_dt, idcol = 'UT', splitcol = 'C1', delimiter = ';') 
 # This function wraps the read.wos.tw8 and read.wos.plain functions, allowing to select
 # the file format through the format parameter
 
-read.wos  <- function(files, format = 'tab_win_utf8') {
+read.wos  <- function(files, format = 'tab_win_utf8', parallel = F) {
   if (format == 'tab_win_utf8') {
-    read.wos.tw8(files = files)
+    read.wos.tw8(files = files, parallel = parallel)
   } else if (format == 'plain_text') {
     read.wos.plain(files = files)
   }
