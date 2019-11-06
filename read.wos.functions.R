@@ -1,66 +1,68 @@
 library(data.table)
+library(parallel)
+
+n_cores <- detectCores() - 1
 
 # This function will parse a list of WoS export files in Tab-delimited (Win, UTF-8) Format, and convert them
 # to a data.table.
 
-read.wos.tw8 <- function(path = './files', nrows=1000000L) {
-  
-  # reads list of files
-  files  <- list.files(path)
+read.wos.tw8 <- function(files, save.file.name = F, parallel = F) {
   
   # Getting list of fields
   fields <- readLines(files[1], n = 1)
   fields <- substring(fields, 4)
   fields <- strsplit(fields, "\t")[[1]]
+  fields <- setdiff(fields, '')
   
-  # creates empty data.table
-  dt <- data.table(x=rep('0',nrows))
-  l  <- list(rep("0",length(fields)))
-  i  <- 1
-  for (field in fields) {
-    l[[i]] <- rep('0',nrows)
-    i <- i + 1
+  if (save.file.name == T) {
+    fields <- c(fields, 'filename')
   }
-  dt[, fields := l, with = FALSE]
-  dt[,x:=NULL]
   
-  i  <- 1L # row counter
-  # Iterates through all files in path
-  for (file in files) {
-    # reads a file, and saves its lines as a character vector
-    fullpath  <- paste(path,'/',file, sep='')
-    lines  <- readLines(fullpath)
-    lines <- lines[2:length(lines)]
-    
-    for (line in lines) {
-      # Splits each row into a character vector, and updates the rows in the data.table
-      row <- strsplit(line, '\t')[[1]][1:length(fields)]
-      j  <- 1L # column counter
-      for (field_value in row) {
-        # Converts empty fields to NA
-        if (field_value == "" | is.na(field_value)) {
-          field_value  <- NA
-        }
-        set(dt,i,j,field_value)
-        j  <- j + 1L
-      }
-      i  <- i + 1L
+  f_lines <- function(line) {
+    # Splits each row into a character vector, and updates the rows in the data.table
+    row <- strsplit(line, '\t')[[1]][1:length(fields)]
+    if (save.file.name == T) {
+      row <- na.omit(row)
+      row <- c(row, file)
     }
-  }
-  # deletes unused rows and columns
-  dt <- dt[PT != '0']
-  
-  # converts some variables to integer: NR (number of cited references),
-  #                                     TC (times cited WoS),
-  #                                     Z9 (total Times Cited Count (WoS, BCI, and CSCD))
-  #                                     PY (publication year)
-  
-  int_fields <- c('NR', 'TC', 'Z9', 'PY')
-  for (int_field in int_fields) {
-    class(dt[[int_field]]) <- 'integer'
+    row
   }
   
-  # returns data.table
+  f_row <- function(row) {
+    # Generates 1-row data.table
+    dt <- transpose(data.table(row))
+    colnames(dt) <- fields
+    dt
+  }
+  
+  if (parallel == F) {
+    
+    f_file <- function(file) {
+      # reads a file, and saves its lines as a character vector
+      lines  <- readLines(file)
+      lines <- lines[2:length(lines)]
+      lines_split <- lapply(lines, f_lines)
+      dt_rows <- lapply(lines_split, f_row)
+      dt <- rbindlist(dt_rows)
+      dt
+    }
+    dt_l <- lapply(files, f_file)
+  } else if (parallel == T) {
+    cl <- makeCluster(n_cores)
+    clusterEvalQ(cl, {library(data.table)})
+    f_file <- function(file) {
+      # reads a file, and saves its lines as a character vector
+      lines  <- readLines(file)
+      lines <- lines[2:length(lines)]
+      lines_split <- lapply(lines, f_lines)
+      dt_rows <- lapply(lines_split, f_row)
+      dt <- rbindlist(dt_rows)
+      dt
+    }
+    dt_l <- parLapply(cl, files, f_file)
+    stopCluster(cl)
+  }
+  dt <- rbindlist(dt_l)
   dt
 }
 
@@ -88,7 +90,7 @@ read.wos.plain <- function(path = './files', nrows=10000000L) {
   lines <- lines[3:length(lines)]
   fields <- unname(sapply(lines[startsWith(lines, "  ") == F], substr, 1, 2))
   fields <- unique(fields)
-  remove <- c("", "ER", "ï»", 'FN', 'VR')
+  remove <- c("", "ER", "??", 'FN', 'VR')
   fields <- fields[! fields %in% remove]
   rm(lines, remove)
   
@@ -195,42 +197,13 @@ trim <- function (x) gsub('^\\s+|\\s+$', '', x)
 # subject categories, etc... and creates a new data.table containing
 # each element in a separate row, keeping its relationship to the 
 # original record through the ID column.
+
 split.simple <- function(source_dt, idcol = 'UT', splitcol, delimiter = ';') {
-  
-  idcol_name <- idcol
-  splitcol_name <- splitcol
-  idcol <- source_dt[[idcol]]
-  splitcol <- source_dt[[splitcol]]
-  
-  # creates empty data.table
-  dt <- data.table(x=rep('0',100000000L))
-  l  <-  list(rep('0',2))
-  i  <- 1
-  for (j in 1:2) {
-    l[[i]] <- rep('0',100000000L)
-    i <- i + 1
-  }
-  dt[, c(idcol_name, splitcol_name) := l, with = FALSE]
-  dt[,x:=NULL]
-  
-  i  <- 1L # row counter
-  for (docix in 1:length(idcol)) {
-    id <- idcol[docix]
-    splitfield <- splitcol[docix]
-    split_list <- strsplit(splitfield, delimiter)[[1]]
-    for (el in split_list) {
-      el  <- trim(el)
-      if (length(el) > 0) {
-        set(dt,i,1L,id)
-        set(dt,i,2L,el)
-        i  <-  i + 1L
-      }
-    }
-  }  
-  # deletes unused rows
-  dt <- dt[dt[[1]] != '0']
-  dt
+  setDT(source_dt)[, lapply(.SD, function(x) trim(unlist(tstrsplit(x, delimiter, fixed=TRUE)))), by = idcol][!is.na(splitcol)]
 }
+
+# split.simple is much faster than split.simple.2 for big data.tables (>1000). WHY???!!!
+# split.simple.3 is MUCH faster than the other 2
 
 #------------------------------------------------------------------------------------------
 
@@ -303,11 +276,11 @@ split.c1 <- function(source_dt, idcol = 'UT', splitcol = 'C1', delimiter = ';') 
 # This function wraps the read.wos.tw8 and read.wos.plain functions, allowing to select
 # the file format through the format parameter
 
-read.wos  <- function(path = './files', format = 'tab_win_utf8') {
+read.wos  <- function(files, format = 'tab_win_utf8') {
   if (format == 'tab_win_utf8') {
-    read.wos.tw8(path = path)
+    read.wos.tw8(files = files)
   } else if (format == 'plain_text') {
-    read.wos.plain(path = path)
+    read.wos.plain(files = files)
   }
 }
 

@@ -24,7 +24,9 @@ splits a field with multiple elements (authors, subject categories, addresses, e
 
 ## Update log
 
-v0.6  The list of fields is now extracted from the exported files themselves, instead of from a predefined variable, since new fields may be added by WoS at any time, or old ones discontinued.
+v0.7	read.wos has been optimized to be more efficient, and support for parallel reading (even faster) has been added
+
+v0.6	The list of fields is now extracted from the exported files themselves, instead of from a predefined variable, since new fields may be added by WoS at any time, or old ones discontinued.
 
 v0.5	Added split.c1 function to split the C1 WoS field (authors/addresses), split.field() and read.wos() wrappers
 
