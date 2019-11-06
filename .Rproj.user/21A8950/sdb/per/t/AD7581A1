@@ -1,0 +1,16 @@
+{
+    "contents" : "\nlibrary(data.table)\nlibrary(xlsx)\n\n# Reads data\nisoc_art <- readRDS(\"isoc_art.rds\")\n\n# Adds clean journal column\nisoc_art[,journal:=substr(isoc_art[,Revista], regexpr('\\\"\\\">',\n                          isoc_art[, Revista]) + 3, \n                          regexpr('</a>',isoc_art[, Revista]) - 1)]\n\n# Adds clean year column\nisoc_art[,year:=substr(isoc_art[[10]], 1, 4)]\n\nmode <- function(x) {\n  ux <- unique(x)\n  ux[which.max(tabulate(match(x, ux)))]\n}\n\n# Computes statistical mode\nmode_jour_year <- isoc_art[, mode(V1), by=list(journal,year)]\nsetkey(mode_jour_year, journal, year)\n\nacc <- mode_jour_year\n\n# Computes maximum\nmax_jour_year <- isoc_art[, max(V1), by=list(journal,year)]\nacc <- acc[max_jour_year]\nsetkey(acc, journal, year)\n\n# Computes median\nmedian_jour_year <- isoc_art[, median(as.numeric(V1)), by=list(journal,year)]\nacc <- acc[median_jour_year]\nsetkey(acc, journal, year)\n\n# Computes minimum\nmin_jour_year <- isoc_art[, min(V1), by=list(journal,year)]\nacc <- acc[min_jour_year]\nsetkey(acc, journal, year)\n\n# Sorts by journal, year\nacc <- acc[order(acc$journal,acc$year)]\n\nwrite.xlsx(acc,\"isoc co-author index.xlsx\")",
+    "created" : 1417728831732.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2897815372",
+    "id" : "AD7581A1",
+    "lastKnownWriteTime" : 1417710298,
+    "path" : "F:/Dropbox/Proyectos/co-author index/isoc/Descargar ISOC/analysis.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

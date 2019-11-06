@@ -1,0 +1,16 @@
+{
+    "contents" : "# This function will parse a list of WoS export files in Tab-delimited (Win, UTF-8) Format, and convert them\n# to a data.table.\n\nlibrary(data.table)\n\nread.wos.tw8 <- function(filefolder = \"./files\", fields_path = \"fields.txt\", nrows=1000000L) {\n  # reads list of fields\n  fields  <- readLines(fields_path)\n  files  <- list.files(filefolder)  \n  \n  # creates empty data.table\n  dt <- data.table(x=rep(\"0\",nrows))\n  l  <- list(rep(\"0\",length(fields)))\n  i  <- 1\n  for (field in fields) {\n    l[[i]] <- rep(\"0\",nrows)\n    i <- i + 1\n  }\n  dt[, fields := l, with = FALSE]\n  dt[,x:=NULL]\n  \n  i  <- 1L # row counter\n  # Iterates through all files in filefolder\n  for (file in files) {\n    # reads a file, and saves its lines as a character vector\n    fullpath  <- paste(filefolder,\"/\",file, sep=\"\")\n    lines  <- readLines(fullpath)\n    lines <- lines[2:length(lines)]\n    \n    for (line in lines) {\n      # Splits each row into a character vector, and updates the rows in the data.table\n      row <- strsplit(line, \"\\t\")[[1]][1:length(fields)]\n      j  <- 1L # column counter\n      for (field_value in row) {\n        set(dt,i,j,field_value)\n        j  <- j + 1L\n      }\n      i  <- i + 1L\n    }\n  }\n  # deletes unused rows\n  dt <- dt[PT != \"0\"]\n  # returns data.table\n  dt\n}\n\ntrim <- function (x) gsub(\"^\\\\s+|\\\\s+$\", \"\", x)\n\nsplit.field <- function(idcol, splitcol, delimiter) {\n  \n  # creates empty data.table\n  dt <- data.table(x=rep(\"0\",100000000L))\n  l  <- list(rep(\"0\",2))\n  i  <- 1\n  for (j in 1:2) {\n    l[[i]] <- rep(\"0\",100000000L)\n    i <- i + 1\n  }\n  dt[, c(\"UT\",\"split\") := l, with = FALSE]\n  dt[,x:=NULL]\n  \n  i  <- 1L # row counter\n  for (docix in 1:length(idcol)) {\n    id <- idcol[docix]\n    splitfield <- splitcol[docix]\n    split_list <- strsplit(splitfield, delimiter)[[1]]\n    for (el in split_list) {\n      el  <- trim(el)\n      if (length(el) > 0) {\n        set(dt,i,1L,id)\n        set(dt,i,2L,el)\n        i  <-  i + 1L\n      }\n    }\n  }  \n  \n  # deletes unused rows\n  dt <- dt[UT != \"0\"]\n  dt\n}\n\n# Reading exported data into data.table\nsp2013 <- read.wos.tw8(filefolder=\"spain2013\")\n\n# Author index\nsplit_authors <- split.field(sp2013$UT,sp2013$AF)\n# Category index\nsplit_categories <- split.field(sp2013$UT,sp2013$WC)\n\n# N? of authors per article\naut_per_art <- split_authors[,length(split),by=UT]\n\n# Exporting results to Excel\nlibrary(xlsx)\nwrite.xlsx(split_authors,\"authors_sp_2013.xlsx\")\nwrite.xlsx(split_categories,\"cat_sp_2013.xlsx\")\nwrite.xlsx(aut_per_art,\"num_aut_sp_2013.xlsx\")\n\n",
+    "created" : 1417724247317.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3172085707",
+    "id" : "3E53AB48",
+    "lastKnownWriteTime" : 1417725207,
+    "path" : "F:/Dropbox/Proyectos/co-author index/wos/2013/procesamiento.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
